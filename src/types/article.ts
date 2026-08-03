@@ -12,3 +12,13 @@ export interface Article {
 export interface CreateArticleDTO {
   content: string
 }
+
+export interface ArticleInfo {
+  content: string;
+  collection: number;
+  isCollected: boolean;
+  like: number;
+  dislike: number;
+  commentCount: number; // 修正拼写
+  id: string;
+}

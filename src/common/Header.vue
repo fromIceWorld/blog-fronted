@@ -1,11 +1,35 @@
 <template>
-    <el-row :gutter="20" class="header-container">
-        <el-col :span="6" class="header-container-logo">
+    <div class="header-container">
+        <div class="header-container-logo">
             <el-image 
-                style="width: 100px; " 
+                @click="goIndex"
+                style="width: 100px; cursor: pointer;" 
                 :src="'https://element-plus.org/images/element-plus-logo.svg'" />
-        </el-col>
-        <el-col :span="6" :offset="12" class="header-container-other">
+        </div>
+        <div class="header-container-search">
+            <el-select 
+                filterable
+                remote 
+                v-model="articleId" 
+                :remote-method="remoteRequest"
+                :loading="loading"
+                popper-class="query-article"
+                placeholder="查询文章" 
+                style="width: 240px"
+                @change="onChange"
+            >
+                <el-option
+                    v-for="item in articleList"
+                    :key="item.value"
+                    :label="item.name"
+                    :value="item.value"
+                    >
+                    <span class="query-article-title">{{ item.name }}</span>
+                    <span class="query-article-content">{{ item.label }}</span>
+                    </el-option>
+                </el-select>
+        </div>
+        <div class="header-container-avator">
             <el-popover
                 placement="top-start"
                 popper-class = "header-menu"
@@ -21,15 +45,27 @@
                 </el-menu>
             </el-popover>
             
-        </el-col>
-    </el-row>
+        </div>
+    </div>
 </template>
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { clearAccessToken, logOut } from '../api/auth';
 import { ElMessage } from 'element-plus';
+import { ref } from 'vue';
+import { getArticleByQuery } from '../api/article';
+import type { Article } from '../types/article';
 
 const router = useRouter()
+
+const loading = ref(false)
+
+const articleId = ref('')
+const articleList = ref<Array<{ name: string, label: string, value: number }>>([])
+
+const onChange = (id: number) => {
+    router.push(`/articles/view-article/${id}`)
+}
 
 const goWhere = (index: string) => {
     switch(index){
@@ -40,6 +76,25 @@ const goWhere = (index: string) => {
             console.log('other')
     }
     console.log(index)
+}
+
+const remoteRequest = (query: string) => {
+    const pureQuery = query.trim()
+    if(pureQuery) {
+        console.log('1231')
+        getArticleByQuery(pureQuery).then(res => {
+            console.log(res)
+            articleList.value = (res.data || []).map((article: Article) => ({
+                name: article.title,
+                label: article.summary,
+                value: article.id
+            }))
+        })
+    }
+}
+
+const goIndex = () => {
+    router.push('/articles/main')
 }
 
 const loginOut = () => {
@@ -55,27 +110,60 @@ const loginOut = () => {
     }
 }
 </script>
-<style scoped>
+<style lang="scss" scoped>
 .header-container {
     height: 60px;
     padding: 0 12px;
-    .el-col {
+    background-color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    margin-left: unset !important;
+    margin-right: unset !important;
+    display: flex;
+    align-items: center;
+    .header-container-logo {
+        width: 210px;
+    }
+    .header-container-search {
+
+    }
+    .header-container-avator {
+        flex: 1;
         display: flex;
-        align-items: center;
+        flex-direction: row-reverse;
     }
 }
 .header-container-other {
     flex-direction: row-reverse;
-    .el-avatar {
+    :deep(.el-avatar) {
         cursor: pointer;
     }
 }
 </style>
-<style>
+<style lang="scss">
+
 .header-menu {
     padding: 8px 0 !important;
     .el-menu-item {
         height: 32px;
+    }
+}
+</style>
+<style lang="scss">
+.query-article {
+    .el-select-dropdown__item {
+        display: flex;
+        flex-direction: column;
+        height: 40px;
+    }
+    .query-article-title {
+        line-height: 20px;
+    }
+    .query-article-content {
+        color: #8a919f;
+        line-height: 16px;
+        font-size: 10px;
     }
 }
 </style>

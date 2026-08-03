@@ -7,6 +7,24 @@ import { ElMessage } from 'element-plus';
 
 const vditor = ref()
 
+const tags = ref([])
+
+const tagNames = [
+    {
+        value: 1,
+        label: 'web',
+    },
+    {
+        value: 2,
+        label: 'node',
+    },
+]
+
+
+const handleClose = (deleteName: string) => {
+    console.log('deleteName', deleteName)
+}
+
 onMounted(() => {
     vditor.value = new Vditor('vditor',{
         width: '100%',
@@ -15,9 +33,10 @@ onMounted(() => {
 })
 
 const submit = async () => {
-    console.log(vditor, vditor.value.getValue())
-    const res = await createArticle({
-        content: vditor.value.getValue()
+    console.log(vditor, vditor.value.getValue(), tags.value)
+    await createArticle({
+        content: vditor.value.getValue(),
+        tags: tags.value
     })
     ElMessage.success('发布成功')
 }
@@ -51,12 +70,34 @@ const submit = async () => {
         content="发布"
         placement="top"
       >
-      <el-link 
-        icon="Position" 
-        class="article-btn submit-btn" 
-        :underline="false" 
-        @click = "submit"
-        />
+        <el-popover
+            placement="top-start"
+            title="🏷️ 文章标签"
+            :width="400"
+            trigger="click"
+        >
+            <template #reference>
+                 <el-link 
+                    icon="Position" 
+                    class="article-btn submit-btn" 
+                    :underline="false" 
+                    />
+            </template>
+            <el-select
+                v-model="tags"
+                multiple
+                placeholder="文章标签"
+                style="width: 240px"
+                >
+                <el-option
+                    v-for="item in tagNames"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                />
+                </el-select>
+            <el-button type="primary" plain size="small" class="submit-button" @click="submit">发布</el-button>
+        </el-popover>
     </el-tooltip>
 </template>
 
@@ -75,5 +116,9 @@ const submit = async () => {
 }
 .cache-btn {
   bottom: 120px;
+}
+.submit-button {
+    margin-top: 10px;
+    width: 100%;
 }
 </style>

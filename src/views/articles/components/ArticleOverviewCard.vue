@@ -1,77 +1,56 @@
 <template>
   <div class="index-page">
     <el-card style="max-width: 480px">
-    <template #header>
-      <div class="card-header">
-        <span>{{ props?.article?.title || '' }}</span>
-      </div>
-    </template>
-    <span>
-        {{ props?.article?.summary }}
-    </span>
-    <template #footer>
-      <div class="article-foot">
-        {{ props?.article?.author || '匿名' }}  
-        <span class="article-foor-split">|</span>
-        <span class="article-foot-data">
-            <span v-for="footData in footDataList">
-            <el-icon 
-                @click="() => footData.onClick(footData)" 
-                :style="{ color: props?.article[footData.activeKey] ? footData.activeColor : ''}" 
-                :class="{ iconClick: !!footData.onClick}">
-                <component :is="footData.icon"/>
-            </el-icon> 
-            {{ props.article[footData.key] }}
+        <template #header>
+        <div class="card-header">
+            <span>{{ props?.article?.title || '' }}</span>
+        </div>
+        </template>
+        <span>
+            {{ props?.article?.summary }}
         </span>
-        </span>
-    </div>
-    </template>
-  </el-card>
+        <template #footer>
+        <div class="article-foot">
+            {{ props?.article?.author || '匿名' }}  
+            <span class="article-foor-split">|</span>
+            <span class="article-foot-data">
+                <span>
+                    <el-icon 
+                        @click="(e) => onCollection(e)" 
+                        :style="{ color: props?.article.isCollected ? '#f7ba2a' : ''}" 
+                        :class="{ iconClick: !!props?.article.isCollected }"
+                        >
+                        <Star />
+                    </el-icon> 
+                    {{ props.article.collection }}
+                </span>
+                <span>
+                    <el-icon>
+                        <View />
+                    </el-icon> 
+                    {{ props.article.view }}
+                </span>
+            </span>
+        </div>
+        </template>
+    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 import { collection } from '../../../api/article';
 const props = defineProps(['article'])
 
 const emit = defineEmits(['updateCollection'])
 
-const onCollection = () => {
+const onCollection = (e: Event) => {
     // 收藏/取消收藏
     collection(props.article.id).then(() => {
         // 修改前端数据
         emit('updateCollection', props.article.isCollected ? -1 : 1)
     })
+    e.stopPropagation()
 }
-
-const footDataList = ref([
-    {
-        icon: 'Star',
-        key: 'collection',
-        onClick: onCollection,
-        activeKey: 'isCollected',
-        activeColor: '#f7ba2a'
-    },
-    {
-        icon: 'View',
-        key: 'view',
-        activeKey: 'isView',
-        activeColor: '#f7ba2a;'
-    },
-    {
-        icon: 'Sunny',
-        key: 'like',
-        activeKey: 'isLike',
-        activeColor: '#f7ba2a;'
-    },
-    {
-        icon: 'Pouring',
-        key: 'dislike',
-        activeKey: 'isDislike',
-        activeColor: '#f7ba2a;'
-    },
-])
 
 </script>
 
@@ -80,6 +59,10 @@ const footDataList = ref([
     border: none;
     border-bottom: 1px solid #e4e6eb80;
     max-width: unset !important;
+}
+.index-page :deep(.el-card):hover{
+    background-color: #e4e6eb80;
+    cursor: pointer;
 }
 .index-page :deep(.el-card__header), :deep(.el-card__footer), :deep(.el-card__body) {
   padding: 8px;
@@ -118,7 +101,7 @@ const footDataList = ref([
 }
 .index-page .article-foot .article-foot-data {
     display: flex;
-    gap: 20px;
+    gap: 12px;
 }
 .index-page .article-foot .el-icon{
     position: relative;

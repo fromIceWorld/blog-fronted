@@ -1,35 +1,66 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
-import { createArticle, deleteArticle, fetchArticles, updateArticle } from '../api/article'
-import { clearAccessToken } from '../api/auth'
+import { fetchArticles } from '../api/article'
 import type { Article } from '../types/article'
-import ArticleOverview from './articles/components/ArticleOverview.vue'
+import ArticleOverview from './articles/components/ArticleOverviewCard.vue'
 import ArticleTypeMenu from '../components/ArticleTypeMenu.vue'
 import HotArticle from '../components/HotArticle.vue'
-import Header from '../common/Header.vue'
+
 const router = useRouter()
 const articles = ref<Article[]>([])
-const loading = ref(false)
+const pageConfig = ref({
+  currentPage: -1,
+  pageSize: 10,
+  total: 0
+})
+const isLoading = ref(false)
+const isFinish = ref(false)
+
 const message = ref('')
 
+const scrollGuardRef = useTemplateRef('scrollGuard')
+
 async function loadArticles() {
-  loading.value = true
+  if(isFinish.value) {
+    return
+  }
+  isLoading.value = true
   try {
-    articles.value = await fetchArticles()
+    const { list, total } = await fetchArticles(
+       {
+          currentPage: pageConfig.value.currentPage,
+          pageSize: pageConfig.value.pageSize,
+       }
+    );
+    console.log('fetchArticles', list)
+    if(!list.length) {
+      isFinish.value = true
+    }
+    articles.value = [...articles.value, ...list]
+    pageConfig.value.total = total
   } catch (error) {
     message.value = '加载文章失败'
   } finally {
-    loading.value = false
+    isLoading.value = false
   }
 }
 
-function goEdit() {
-  router.push('/create-article')
+const goArticle = (article: Article) => {
+  console.log(article)
+  router.push(`/articles/view-article/${article.id}`)
+}
+
+const createIntersectionObserver = () => {
+  const intersection = new IntersectionObserver((entries) => {
+    if (entries[0].intersectionRatio <= 0) return;
+    loadMoreArticles()
+  })
+  scrollGuardRef.value && intersection.observe(scrollGuardRef.value)
 }
 
 onMounted(() => {
-  loadArticles()
+  createIntersectionObserver()
 })
 
 const onUpdateCollection = (value: number, index: number) => {
@@ -38,39 +69,45 @@ const onUpdateCollection = (value: number, index: number) => {
   article.collection += value
 }
 
+const loadMoreArticles = () => {
+  pageConfig.value.currentPage += 1
+  loadArticles()
+}
+
+function goEdit() {
+  router.push('/create-article')
+}
+
 </script>
 
 <template>
-  <div class="mian-page">
-    <div class="header-container">
-      <Header />
+  <div class="article-index"> 
+    <div class="article-type">
+      <ArticleTypeMenu />
     </div>
-    <div class="body-container">
-      <div class="article-index"> 
-        <div class="article-type">
-          <ArticleTypeMenu />
-        </div>
-        <div class="article-list-container" >
-          <ArticleOverview 
-            v-for="(article, index) in articles" 
-            :key = "article.id"
-            :article="article"
-            @updateCollection = "(value) => onUpdateCollection(value, index)"
-          />
-        </div>
-        <div class="hot-article">
-          <HotArticle />
-        </div>
+    <div class="article-list-container">
+      <ArticleOverview 
+        v-for="(article, index) in articles" 
+        :key = "article.id"
+        :article="article"
+        @click="() => goArticle(article)"
+        @updateCollection = "(value) => onUpdateCollection(value, index)"
+      />
+      <div class="guard" ref="scrollGuard">
+        {{ isLoading ? '加载中...' : '已经到底了' }}
       </div>
+    </div>
+    <div class="hot-article">
+      <HotArticle />
     </div>
     <!-- 写作按钮 -->
     <el-link 
-      icon="Edit" 
-      class="edit-btn" 
-      :underline="false" 
-      type="primary"
-      @click="goEdit"
-      >
+        icon="Edit" 
+        class="edit-btn" 
+        :underline="false" 
+        type="primary"
+        @click="goEdit"
+        >
     </el-link>
   </div>
 </template>
@@ -98,9 +135,11 @@ const onUpdateCollection = (value: number, index: number) => {
   height: fit-content;
   flex: 1;
   background-color: white;
+  padding: 10px 0;
 }
 .article-list-container :deep(.el-card){
-  margin: 10px;
+  margin: 0 10px;
+  padding: 10px 0;
 }
 .index-page :deep(.el-card__header), :deep(.el-card__footer), :deep(.el-card__body) {
   padding: 8px
@@ -108,10 +147,17 @@ const onUpdateCollection = (value: number, index: number) => {
 .index-page :deep(.el-card) {
   box-shadow: unset
 }
+.guard {
+    text-align: center;
+    padding-top: 10px;
+    font-size: 12px;
+    color: #8a919f;
+}
 .edit-btn {
   position: fixed;
   right: 40px;
   bottom: 40px;
   font-size: 30px;
 }
+
 </style>

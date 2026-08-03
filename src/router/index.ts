@@ -4,6 +4,8 @@ import LoginPage from '../views/LoginPage.vue'
 import ArticlePage from '../views/ArticlePage.vue'
 import RegistrationPage from '../views/RegistrationPage.vue'
 import CreateArticle from '../views/articles/components/CreateArticle.vue'
+import ViewArticle from '../views/articles/components/ViewArticle.vue'
+import BlogIndex from '../views/BlogIndex.vue'
 
 const routes = [
   {
@@ -19,8 +21,24 @@ const routes = [
   {
     path: '/articles',
     name: 'articles',
-    component: ArticlePage,
+    redirect: '/articles/main',
+    component: BlogIndex,
     meta: { requiresAuth: true },
+    children: [
+      {
+        path: 'main',
+        component: ArticlePage,
+      },
+      {
+        path: 'view-article/:id',
+        component: ViewArticle,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '',
+        redirect: '/articles/main'
+      }
+    ]
   },
   {
     path: '/create-article',
