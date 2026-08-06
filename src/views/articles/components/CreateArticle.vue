@@ -33,12 +33,16 @@ onMounted(() => {
 })
 
 const submit = async () => {
-    console.log(vditor, vditor.value.getValue(), tags.value)
-    await createArticle({
-        content: vditor.value.getValue(),
-        tags: tags.value
-    })
-    ElMessage.success('发布成功')
+    try {
+        await createArticle({
+            content: vditor.value.getValue(),
+            tags: tags.value
+        })
+        ElMessage.success('发布成功')
+    } catch (error: any) {
+        console.log('error', error)
+        ElMessage.error(error?.message.join(',') || '保存失败')
+    }
 }
 </script>
 <template>

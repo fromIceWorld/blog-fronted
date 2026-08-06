@@ -47,6 +47,10 @@
             </template>
         </custom-el-comment> 
     </div>
+    <!-- 触底守卫 -->
+    <div class="guard" ref="scrollGuard">
+        {{ isLoading ? '加载中...' : '已经到底了' }}
+    </div>
  </div>
 </template>
 <script setup lang="ts">
@@ -56,10 +60,16 @@ import CustomElComment from './CustomElComment.vue'
 import { ElMessage, type PopoverInstance } from 'element-plus'
 import { createArticleComment, queryArticleComment } from '../api/article.ts'
 
-const queryConfig = ref({
-    currentPage: 0,
+const pageConfig = ref({
+    currentPage: -1,
     pageSize: 20
 })
+
+const isLoading = ref(false)
+const isFinish = ref(false)
+
+const scrollGuardRef = useTemplateRef('scrollGuard')
+
 
 const popoverVisible = reactive<Record<number, boolean>>({});
 
@@ -93,7 +103,6 @@ const addComment = () => {
   //  创建评论
   createArticleComment(params).then(res => {
     const { replayId } = res.data
-    debugger
     if(replayId === null) {
         comments.value.unshift(res.data)
     } else {
@@ -119,7 +128,6 @@ const addReply = (index: number, replayId: number, commentId: number) => {
   }
   //  创建评论
   createArticleComment(params).then(res => {
-    debugger
     const replies = comments.value[index].children
     const Index = replies.findIndex((comment: any) => comment.id === replayId)
     // 判断回复的评论层级：
@@ -157,24 +165,46 @@ const uploadAvatar = (event) => {
   }
 }
 
+const loadMoreComments = () => {
+  pageConfig.value.currentPage += 1
+  requestComment()
+}
+
 const requestComment = () => {
-    console.log(props)
+    if(isFinish.value) {
+    return
+   }
     queryArticleComment({
         articleId: props.articleId,
-        ...queryConfig.value
+        ...pageConfig.value
     }).then(res => {
-        console.log('res', res)
-        comments.value = res.data || []
+        const { list, total } = res.data
+        comments.value.push(...(list || []))
+        if(!list.length) {
+            isFinish.value = true
+        }
     })
 }
 
-watch(() => [props.isDisplay], () => {
-    if(props.isDisplay) {
-        requestComment()
-    }
-}, {
-    immediate: true
+const createIntersectionObserver = () => {
+  const intersection = new IntersectionObserver((entries) => {
+    if (entries[0].intersectionRatio <= 0) return;
+    loadMoreComments()
+  })
+  scrollGuardRef.value && intersection.observe(scrollGuardRef.value)
+}
+
+onMounted(() => {
+  createIntersectionObserver()
 })
+
+// watch(() => [props.isDisplay], () => {
+//     if(props.isDisplay) {
+//         requestComment()
+//     }
+// }, {
+//     immediate: true
+// })
 
 </script>
 <style scoped lang="scss">
@@ -230,5 +260,11 @@ watch(() => [props.isDisplay], () => {
         margin-top: 10px;
         float: right;
     }
+}
+.guard {
+    text-align: center;
+    padding-top: 10px;
+    font-size: 12px;
+    color: #8a919f;
 }
 </style>

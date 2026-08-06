@@ -99,12 +99,11 @@ const goIndex = () => {
 
 const loginOut = () => {
     try{
-        logOut().then(res => {
-            console.log('logout res', res)
+        logOut().then((res: any) => {
+            clearAccessToken()
+            router.push('/login')
+            ElMessage.success(res?.message || '退出登陆')
         })
-        clearAccessToken()
-        router.push('/login')
-        ElMessage.success('退出登陆')
     } catch(err: any) {
         console.error(err)
     }

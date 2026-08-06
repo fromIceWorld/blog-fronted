@@ -150,7 +150,7 @@ api.interceptors.response.use(
 
     // 非 401 或已重试过，直接拒绝
     if (error.response.status !== 401 || originalRequest.__isRetry) {
-      return Promise.reject(error);
+      return Promise.reject(error.response.data);
     }
 
 
@@ -244,8 +244,7 @@ export async function login(payload: { username?: string; password?: string; ema
 }
 
 async function logOut() {
-   const res = await api.post<LoginResponse>('/auth/logout')
-   return res.data
+   return api.post<{code: number, message: string}>('/auth/logout')
 }
 
 export async function sendVerificationCode(payload: { email?: string; phone?: string }) {

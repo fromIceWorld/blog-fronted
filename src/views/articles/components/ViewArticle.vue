@@ -21,7 +21,7 @@
         <div class="article-menu">其他信息</div>
         <el-drawer
             v-model="isDrawerOpen"
-            title="评论"
+            :title="'评论 · ' + articleInfo.commentCount"
             size="400"
         >
             <CustomComment :articleId="articleInfo.id" :isDisplay="isDrawerOpen"></CustomComment>
