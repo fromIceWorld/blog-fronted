@@ -50,7 +50,7 @@
 </template>
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { clearAccessToken, logOut } from '../api/auth';
+import { authStore, clearAccessToken, logOut } from '../api/auth';
 import { ElMessage } from 'element-plus';
 import { ref } from 'vue';
 import { getArticleByQuery } from '../api/article';

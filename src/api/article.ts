@@ -2,7 +2,12 @@ import type { Article } from '../types/article'
 import { api } from './auth'
 
 export async function fetchArticles(params: any): Promise<{ list: Article[], total: number}> {
-  const res = await api.get<{ list: Article[], total: number}>(`/article?currentPage=${params.currentPage}&pageSize=${params.pageSize}`)
+  const res = await api.get<{ list: Article[], total: number}>(
+    `/article`,
+    {
+      params
+    }
+  )
   return res.data
 }
 

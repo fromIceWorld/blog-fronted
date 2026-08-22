@@ -16,34 +16,53 @@ const pageConfig = ref({
 })
 const isLoading = ref(false)
 const isFinish = ref(false)
+const tagList = ref('')
 
 const message = ref('')
 
 const scrollGuardRef = useTemplateRef('scrollGuard')
 
-async function loadArticles() {
+async function loadArticles(loadMore: boolean = true) {
   if(isFinish.value) {
     return
   }
   isLoading.value = true
   try {
-    const { list, total } = await fetchArticles(
-       {
-          currentPage: pageConfig.value.currentPage,
-          pageSize: pageConfig.value.pageSize,
-       }
-    );
+    const params: any = {
+      currentPage: pageConfig.value.currentPage,
+      pageSize: pageConfig.value.pageSize,
+    }
+    if(tagList.value) {
+      params.tagList = [tagList.value]
+    }
+    const { list, total } = await fetchArticles(params);
     console.log('fetchArticles', list)
     if(!list.length) {
       isFinish.value = true
     }
-    articles.value = [...articles.value, ...list]
+    if(loadMore) {
+      articles.value = [...articles.value, ...list]
+    } else {
+      articles.value = [...list]
+    }
     pageConfig.value.total = total
   } catch (error) {
     message.value = '加载文章失败'
   } finally {
     isLoading.value = false
   }
+}
+
+const onMenuChange = (id: string) => {
+  tagList.value = id
+  pageConfig.value = {
+    currentPage: 0,
+    pageSize: 10,
+    total: 0
+  }
+  isLoading.value =false
+  isFinish.value = false
+  loadArticles(false)
 }
 
 const goArticle = (article: Article) => {
@@ -83,7 +102,7 @@ function goEdit() {
 <template>
   <div class="article-index"> 
     <div class="article-type">
-      <ArticleTypeMenu />
+      <ArticleTypeMenu @menuChange="onMenuChange"/>
     </div>
     <div class="article-list-container">
       <ArticleOverview 

@@ -14,6 +14,7 @@ const accountForm = reactive({
   username: '',
   password: '',
   confirmPassword: '',
+  nickname: '',
   email: '',
   phone: '',
 })

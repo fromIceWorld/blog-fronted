@@ -31,6 +31,13 @@
                     {{ props.article.view }}
                 </span>
             </span>
+            <span class="article-tags">
+                <el-tag 
+                    v-for="tagName in props.article.tagNames"
+                    type="primary" 
+                    size="small"
+                 >{{ tagName }}</el-tag>
+            </span>
         </div>
         </template>
     </el-card>
@@ -94,6 +101,7 @@ const onCollection = (e: Event) => {
     font-size: 13px;
     align-items: center;
     color: #8a919f;
+    position: relative;
 }
 .index-page .article-foot .article-foor-split {
     color: #e4e6eb;
@@ -106,6 +114,13 @@ const onCollection = (e: Event) => {
 .index-page .article-foot .el-icon{
     position: relative;
     top: 2px;
+}
+.index-page .article-tags{
+    position: absolute;
+    right: 0;
+}
+.index-page .article-tags .el-tag{
+    margin-left: 2px;
 }
 .iconClick {
     cursor: pointer;

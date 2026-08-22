@@ -1,6 +1,5 @@
 import { reactive } from 'vue'
 import axios, { AxiosHeaders, type InternalAxiosRequestConfig } from 'axios'
-import { ElMessage } from 'element-plus'
 
 const api = axios.create({
   baseURL: 'http://localhost:3000',
@@ -10,12 +9,7 @@ const api = axios.create({
 
 interface TokenPayload {
   token?: string
-  accessToken?: string
-  message?: string
-  data?: {
-    token?: string
-    accessToken?: string
-  }
+  nickname: string
 }
 
 export interface LoginResponse extends TokenPayload {}
@@ -24,18 +18,22 @@ type RetryableRequestConfig = InternalAxiosRequestConfig & {
   __isRetry?: boolean
 }
 
-const authStore = reactive<{ accessToken: string | null }>({
+export const authStore = reactive<{ accessToken: string | null, nickname: string }>({
   accessToken: null,
+  nickname: ''
 })
 
 let refreshSubscribers: Array<(token: string | null) => void> = []
 let hasRedirectedToLogin = false
 
 function getTokenFromPayload(payload: TokenPayload | null | undefined) {
-  if (!payload) return null
-
-  const token = payload.accessToken ?? payload.token ?? payload.data?.accessToken ?? payload.data?.token
-  return typeof token === 'string' && token ? token : null
+  if (!payload) return {}
+  console.log('payload', payload)
+  const token = payload.token
+  return {
+    token: typeof token === 'string' && token ? token : null,
+    nickname: payload.nickname
+  }
 }
 
 function setAuthorizationHeader(config: RetryableRequestConfig, token: string | null) {
@@ -68,13 +66,14 @@ function redirectToLogin() {
 
 async function refreshAccessToken() {
   const res = await api.post<TokenPayload>('/auth/refresh')
-  const token = getTokenFromPayload(res.data)
+  const { token, nickname = '' } = getTokenFromPayload(res.data)
 
   if (!token) {
     throw new Error('Refresh token failed')
   }
 
   authStore.accessToken = token
+  authStore.nickname = nickname 
   return token
 }
 
@@ -232,12 +231,15 @@ export function isAuthenticated() {
   return !!authStore.accessToken
 }
 
-export async function login(payload: { username?: string; password?: string; email?: string; phone?: string; code?: string; }) {
+export async function login(
+  payload: { username?: string; password?: string; email?: string; phone?: string; code?: string; }
+) {
   const res = await api.post<LoginResponse>('/auth/login', payload)
-  const token = getTokenFromPayload(res.data)
+  const { token, nickname = '' } = getTokenFromPayload(res.data)
 
   if (token) {
     authStore.accessToken = token
+    authStore.nickname = nickname
   }
 
   return res.data
@@ -253,12 +255,12 @@ export async function sendVerificationCode(payload: { email?: string; phone?: st
 
 export async function register(payload: { phone?: string; email?: string; username: string; password: string; }) {
   const res = await api.post<TokenPayload>('/auth/register', payload)
-  const token = getTokenFromPayload(res.data)
+  const { token, nickname = '' } = getTokenFromPayload(res.data)
 
   if (token) {
     authStore.accessToken = token
+    authStore.nickname = nickname
   }
-
   return res.data
 }
 

@@ -1,6 +1,7 @@
 <template>
     <el-menu
         :default-active="defaultActive"
+        @select="onSelect"
     >
         <el-menu-item 
           v-for="(menu, index) in menus" 
@@ -14,10 +15,13 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
 import { getAllTags } from '../api/article';
-const defaultActive = ref('default')
+
+const emit = defineEmits(['menuChange'])
+
+const defaultActive = ref('0')
 const menus = ref([
     {
-        id: 'default',
+        id: undefined,
         name: '综合',
         count: '',
         icon: 'Compass'
@@ -28,7 +32,7 @@ const menus = ref([
         count: 0,
         icon: 'Monitor'
     },
-        {
+    {
         id: 2,
         name: 'node',
         count: 0,
@@ -49,6 +53,10 @@ const queryTags = () => {
             count: nameMapCount.get(menu.name) || ''
         }))
     })
+}
+
+const onSelect = (index) => {
+    emit('menuChange', menus.value[index].id)
 }
 
 onMounted(() => {
