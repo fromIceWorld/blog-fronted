@@ -3,7 +3,7 @@ import { api } from './auth'
 
 export async function fetchArticles(params: any): Promise<{ list: Article[], total: number}> {
   const res = await api.get<{ list: Article[], total: number}>(
-    `/article`,
+    `/article/findArticalByPage`,
     {
       params
     }
@@ -11,8 +11,18 @@ export async function fetchArticles(params: any): Promise<{ list: Article[], tot
   return res.data
 }
 
+export async function getHotList(interval: number): Promise<{ list: Article[]}> {
+  const res = await api.get<{ list: Article[] }>(
+    `/article/hot`,
+    {
+      params: { interval }
+    }
+  )
+  return res.data
+}
+
 export async function createArticle(payload: { content: string, tags: string[]}) {
-  const { data } = await api.post<Article>('/article', payload)
+  const { data } = await api.post<Article>('/article/createArtical', payload)
   return data
 }
 

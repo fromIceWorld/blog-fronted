@@ -1,8 +1,9 @@
 import { reactive } from 'vue'
 import axios, { AxiosHeaders, type InternalAxiosRequestConfig } from 'axios'
 
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
+export const api = axios.create({
+  // 使用 /api 前缀，开发时由 vite proxy 转发到后端 (http://localhost:9000)
+  baseURL: '/api',
   timeout: 10000,
   withCredentials: true,
 })
@@ -64,7 +65,7 @@ function redirectToLogin() {
   window.location.assign('/login')
 }
 
-async function refreshAccessToken() {
+export async function refreshAccessToken() {
   const res = await api.post<TokenPayload>('/auth/refresh')
   const { token, nickname = '' } = getTokenFromPayload(res.data)
 
@@ -245,7 +246,7 @@ export async function login(
   return res.data
 }
 
-async function logOut() {
+export async function logOut() {
    return api.post<{code: number, message: string}>('/auth/logout')
 }
 
@@ -254,7 +255,7 @@ export async function sendVerificationCode(payload: { email?: string; phone?: st
 }
 
 export async function register(payload: { phone?: string; email?: string; username: string; password: string; }) {
-  const res = await api.post<TokenPayload>('/auth/register', payload)
+  const res = await api.post<TokenPayload>('/user/registry', payload)
   const { token, nickname = '' } = getTokenFromPayload(res.data)
 
   if (token) {
@@ -264,4 +265,3 @@ export async function register(payload: { phone?: string; email?: string; userna
   return res.data
 }
 
-export { api, logOut }

@@ -6,7 +6,10 @@ import RegistrationPage from '../views/RegistrationPage.vue'
 import CreateArticle from '../views/articles/components/CreateArticle.vue'
 import ViewArticle from '../views/articles/components/ViewArticle.vue'
 import BlogIndex from '../views/BlogIndex.vue'
-
+import AiChat from '../views/AiChat.vue'
+import KnowledgeChat from '@/views/knowledgeChat/KnowledgeChat.vue'
+import { KnowledgeRoutes } from './knowledge.ts'
+import { TraceRoutes } from './trace.ts'
 const routes = [
   {
     path: '/login',
@@ -46,6 +49,13 @@ const routes = [
     component: CreateArticle,
     meta: { requiresAuth: true },
   },
+  {
+    path: '/ai-chat',
+    name: 'ai-chat',
+    component: AiChat,
+  },
+    ...KnowledgeRoutes,
+    ...TraceRoutes,
   {
     path: '/',
     redirect: '/login',

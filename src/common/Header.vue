@@ -44,7 +44,7 @@
                     <el-menu-item index="logout">退出</el-menu-item>
                 </el-menu>
             </el-popover>
-            
+            <el-icon class="knowledge-chat" @click="gothreads"><Collection /></el-icon>
         </div>
     </div>
 </template>
@@ -66,6 +66,11 @@ const articleList = ref<Array<{ name: string, label: string, value: number }>>([
 const onChange = (id: number) => {
     router.push(`/articles/view-article/${id}`)
 }
+
+const gothreads = () => {
+    router.push(`/knowledge/threads`)
+}
+
 
 const goWhere = (index: string) => {
     switch(index){
@@ -131,6 +136,12 @@ const loginOut = () => {
         flex: 1;
         display: flex;
         flex-direction: row-reverse;
+        align-items: center;
+        .knowledge-chat {
+            cursor: pointer;
+            margin-right: 48px;
+            font-size: 20px;
+        }
     }
 }
 .header-container-other {

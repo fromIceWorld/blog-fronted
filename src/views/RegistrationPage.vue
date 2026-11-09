@@ -37,6 +37,11 @@ const accountRules: FormRules = {
       trigger: 'blur',
     },
   ],
+  nickname: [
+    { required: true, message: '请输昵称', trigger: 'blur' },
+    { min: 1, message: '昵称至少1位', trigger: 'blur' },
+    { min: 7, message: '昵称最长7位', trigger: 'blur' },
+  ],
   email: [
     { type: 'email', message: '请输入有效邮箱地址', trigger: 'blur', required: false },
   ],
@@ -55,6 +60,7 @@ async function submitAuth(formEl: FormInstance | undefined) {
         const payload: any = {
           username: accountForm.username,
           password: accountForm.password,
+          nickname: accountForm.nickname
         }
         if (accountForm.email) payload.email = accountForm.email
         if (accountForm.phone) payload.phone = accountForm.phone
@@ -63,7 +69,8 @@ async function submitAuth(formEl: FormInstance | undefined) {
         ElMessage({ message: '注册成功', type: 'success' })
         router.replace('/articles')
       } catch (error: any) {
-        ElMessage({ message: error?.response?.data?.message || '注册失败，请检查接口', type: 'error' })
+        console.log('error', error)
+        ElMessage({ message: error?.message || '注册失败，请检查接口', type: 'error' })
       } finally {
         submitBtnLoading.value = false
       }
@@ -99,7 +106,11 @@ async function submitAuth(formEl: FormInstance | undefined) {
         <el-input v-model="accountForm.confirmPassword" type="password" placeholder="请再次输入密码" />
       </el-form-item>
 
-      <el-form-item label="邮箱" prop="email">
+      <el-form-item label="昵称" prop="email">
+        <el-input v-model="accountForm.nickname" placeholder="请输入昵称" />
+      </el-form-item>
+
+       <el-form-item label="邮箱" prop="email">
         <el-input v-model="accountForm.email" placeholder="请输入邮箱（可选）" />
       </el-form-item>
 
